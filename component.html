@@ -1,0 +1,123 @@
+<polymer-element name="ceci-collection-tests" extends="ceci-element" attributes="">
+  <ceci-definition>
+    {
+      "name": "Collection Tests",
+      "thumbnail": "./thumbnail.png",
+      "description": "Unit tests for data collections"
+    }
+  </ceci-definition>
+  <template>
+    <link rel="stylesheet" href="component.css">
+    <div>
+      <div>
+        <span>testing collections... {{status}}</span>
+      </div>
+    </div>
+    <shadow></shadow>
+  </template>
+  <tags>tests</tags>
+    <script>
+      Polymer("ceci-collection-tests", {
+        attached: function() {
+          var self = this;
+          var ceciCollections = document.querySelector("ceci-collections");
+          if (!ceciCollections) {
+            return this.status = "skipped"
+          }
+          var passed = 0;
+          var failed = 0;
+          var index = 0;
+          function next() {
+            index++;
+            if (tests[index]) {
+              setTimeout( function() {
+                tests[index]();
+              }, 0);
+            } else {
+              finish();
+            }
+          }
+          function start() {
+            if (tests[index]) {
+              setTimeout( function() {
+                tests[index]();
+              }, 0);
+            } else {
+              finish();
+            }
+          }
+          function test(name, result) {
+            if (result) {
+              passed++;
+            } else {
+              failed++;
+            }
+            console.log(name, result);
+          }
+          function finish() {
+            self.status = "passed: " + passed + " failed: " + failed;
+          }
+          var tests = [
+            function addCollectionTests() {
+              ceciCollections.addEventListener("collectionchange", function onCollectionAdded(e) {
+                ceciCollections.removeEventListener("collectionchange", onCollectionAdded);
+                test("collection added event", e.detail.added === "contacts");
+                next();
+              });
+              ceciCollections.addCollection("contacts");
+              test("collection added text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{},\"data\":[]}}");
+            },
+            function removeCollectionTests() {
+              ceciCollections.addEventListener("collectionchange", function onCollectionRemoved(e) {
+                ceciCollections.removeEventListener("collectionchange", onCollectionRemoved);
+                test("collection removed event", e.detail.removed === "contacts");
+                next();
+              });
+              ceciCollections.removeCollection("contacts");
+              test("collection removed text content", ceciCollections.textContent === "{}");
+            },
+            function addFieldTests() {
+              ceciCollections.addEventListener("collectionchange", function onCollectionAdded(e) {
+                ceciCollections.removeEventListener("collectionchange", onCollectionAdded);
+                test("collection added via add field event", e.detail.added === "contacts");
+              });
+              ceciCollections.addEventListener("fieldchange", function onFieldAdded(e) {
+                ceciCollections.removeEventListener("fieldchange", onFieldAdded);
+                test("add field event: collection name", e.detail.collection === "contacts");
+                test("add field event: field name", e.detail.field === "address");
+                test("add field event: added data", e.detail.added.type === "Address");
+                next();
+              });
+              ceciCollections.addField("contacts", "address", {type: "Address"});
+              test("add field text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{\"address\":{\"type\":\"Address\"}},\"data\":[]}}");
+            },
+            function updateFieldTests() {
+              ceciCollections.addEventListener("fieldchange", function onFieldUpdated(e) {
+                ceciCollections.removeEventListener("fieldchange", onFieldUpdated);
+                test("update field event: collection name", e.detail.collection === "contacts");
+                test("update field event: field name", e.detail.field === "address");
+                test("update field event: added data", e.detail.added.type === "Text");
+                test("update field event: removed data", e.detail.removed.type === "Address");
+                next();
+              });
+              ceciCollections.addField("contacts", "address", {type: "Text"});
+              test("update field text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{\"address\":{\"type\":\"Text\"}},\"data\":[]}}");
+            },
+            function removeFieldTests() {
+              ceciCollections.addEventListener("fieldchange", function onFieldRemoved(e) {
+                ceciCollections.removeEventListener("fieldchange", onFieldRemoved);
+                test("remove field event: collection name", e.detail.collection === "contacts");
+                test("remove field event: field name", e.detail.field === "address");
+                test("remove field event: removed data", e.detail.removed.type === "Text");
+                next();
+              });
+              ceciCollections.removeField("contacts", "address");
+              test("remove field text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{},\"data\":[]}}");
+            }
+          ];
+          start();
+        },
+        status: ""
+      });
+    </script>
+</polymer-element>
