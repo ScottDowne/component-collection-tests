@@ -65,7 +65,7 @@
                 next();
               });
               ceciCollections.addCollection("contacts");
-              test("collection added text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{},\"data\":[]}}");
+              test("collection added text content", ceciCollections.textContent === "{\"contacts\":{}}");
             },
             function removeCollectionTests() {
               ceciCollections.addEventListener("collectionchange", function onCollectionRemoved(e) {
@@ -89,7 +89,7 @@
                 next();
               });
               ceciCollections.addField("contacts", "address", {type: "Address"});
-              test("add field text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{\"address\":{\"type\":\"Address\"}},\"data\":[]}}");
+              test("add field text content", ceciCollections.textContent === "{\"contacts\":{\"address\":{\"type\":\"Address\"}}}");
             },
             function updateFieldTests() {
               ceciCollections.addEventListener("fieldchange", function onFieldUpdated(e) {
@@ -101,7 +101,7 @@
                 next();
               });
               ceciCollections.addField("contacts", "address", {type: "Text"});
-              test("update field text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{\"address\":{\"type\":\"Text\"}},\"data\":[]}}");
+              test("update field text content", ceciCollections.textContent === "{\"contacts\":{\"address\":{\"type\":\"Text\"}}}");
             },
             function removeFieldTests() {
               ceciCollections.addEventListener("fieldchange", function onFieldRemoved(e) {
@@ -112,7 +112,25 @@
                 next();
               });
               ceciCollections.removeField("contacts", "address");
-              test("remove field text content", ceciCollections.textContent === "{\"contacts\":{\"fields\":{},\"data\":[]}}");
+              test("remove field text content", ceciCollections.textContent === "{\"contacts\":{}}");
+            },
+            function addItemTests() {
+              ceciCollections.addEventListener("itemchanged", function onItemAdded(e) {
+                ceciCollections.removeEventListener("itemchanged", onItemAdded);
+                test("item added event: collection name", e.detail.collection === "contacts");
+                test("item added event: added data", e.detail.added.address === "12345");
+                next();
+              });
+              ceciCollections.addItem("contacts", {address: "12345"});
+            },
+            function removeItemTests() {
+              ceciCollections.addEventListener("itemchanged", function onItemRemoved(e) {
+                ceciCollections.removeEventListener("itemchanged", onItemRemoved);
+                test("remove item event: collection name", e.detail.collection === "contacts");
+                test("remove item event: removed data", e.detail.removed.address === "12345");
+                next();
+              });
+              ceciCollections.removeItem("contacts", 0);
             }
           ];
           start();
