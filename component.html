@@ -67,13 +67,23 @@
               ceciCollections.addCollection("contacts");
               test("collection added text content", ceciCollections.textContent === "{\"contacts\":{}}");
             },
-            function removeCollectionTests() {
-              ceciCollections.addEventListener("collectionchange", function onCollectionRemoved(e) {
-                ceciCollections.removeEventListener("collectionchange", onCollectionRemoved);
+            function updateCollectionTests() {
+              ceciCollections.addEventListener("collectionchange", function onCollectionUpdated(e) {
+                ceciCollections.removeEventListener("collectionchange", onCollectionUpdated);
+                test("collection added event", e.detail.added === "contacts2");
                 test("collection removed event", e.detail.removed === "contacts");
                 next();
               });
-              ceciCollections.removeCollection("contacts");
+              ceciCollections.updateCollection("contacts", "contacts2");
+              test("collection update text content", ceciCollections.textContent === "{\"contacts2\":{}}");
+            },
+            function removeCollectionTests() {
+              ceciCollections.addEventListener("collectionchange", function onCollectionRemoved(e) {
+                ceciCollections.removeEventListener("collectionchange", onCollectionRemoved);
+                test("collection removed event", e.detail.removed === "contacts2");
+                next();
+              });
+              ceciCollections.removeCollection("contacts2");
               test("collection removed text content", ceciCollections.textContent === "{}");
             },
             function addFieldTests() {
@@ -100,7 +110,7 @@
                 test("update field event: removed data", e.detail.removed.type === "Address");
                 next();
               });
-              ceciCollections.addField("contacts", "address", {type: "Text"});
+              ceciCollections.updateField("contacts", "address", {type: "Text"});
               test("update field text content", ceciCollections.textContent === "{\"contacts\":{\"address\":{\"type\":\"Text\"}}}");
             },
             function removeFieldTests() {
@@ -123,11 +133,21 @@
               });
               ceciCollections.addItem("contacts", {address: "12345"});
             },
+            function updateItemTests() {
+              ceciCollections.addEventListener("itemchanged", function onItemUpdated(e) {
+                ceciCollections.removeEventListener("itemchanged", onItemUpdated);
+                test("update item event: collection name", e.detail.collection === "contacts");
+                test("update item event: removed data", e.detail.removed.address === "12345");
+                test("update item event: added data", e.detail.added.address === "54321");
+                next();
+              });
+              ceciCollections.updateItem("contacts", 0, {address: "54321"});
+            },
             function removeItemTests() {
               ceciCollections.addEventListener("itemchanged", function onItemRemoved(e) {
                 ceciCollections.removeEventListener("itemchanged", onItemRemoved);
                 test("remove item event: collection name", e.detail.collection === "contacts");
-                test("remove item event: removed data", e.detail.removed.address === "12345");
+                test("remove item event: removed data", e.detail.removed.address === "54321");
                 next();
               });
               ceciCollections.removeItem("contacts", 0);
